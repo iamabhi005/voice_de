@@ -1,17 +1,30 @@
 {
-    "name": "gana-voice-root",
-    "version": "1.0.0",
-    "scripts": {
-        "dev": "npm run server-start & npm run dev --prefix client",
-        "build": "npm run build --prefix client",
-        "client-install": "npm install --prefix client",
-        "server-setup": "cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
-        "server-start": "lsof -ti:8000 | xargs kill -9 || true && cd server && source venv/bin/activate && python3 main.py"
-    },
-    "dependencies": {
-        "@google/generative-ai": "^0.24.1",
-        "axios": "^1.15.0",
-        "dotenv": "^17.4.1",
-        "pg": "^8.20.0"
-    }
+  "name": "next-temp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.15.0",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.4.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.3",
+    "pg": "^8.20.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.3",
+    "tailwindcss": "^4"
+  }
 }
