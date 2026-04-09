@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  background-color: #0a0a0c;
+  color: white;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+}
+
+.retro-gradient {
+  background: linear-gradient(135deg, #7d12ff 0%, #ff007f 50%, #ff8c00 100%);
+}
+
+.neon-border {
+  box-shadow: 0 0 10px #7d12ff, 0 0 20px #ff007f;
+}
+
+.neon-text {
+  text-shadow: 0 0 5px #fff, 0 0 10px #7d12ff, 0 0 20px #ff007f;
+}
+
+@keyframes waveform {
+  0% {
+    height: 10%;
+  }
+
+  50% {
+    height: 70%;
+  }
+
+  100% {
+    height: 10%;
+  }
+}
+
+.waveform-bar {
+  animation: waveform 0.5s ease-in-out infinite;
+}
+
+@theme {
+  --color-retro-purple: #7d12ff;
+  --color-retro-pink: #ff007f;
+  --color-retro-orange: #ff8c00;
+  --color-retro-neon: #00f3ff;
+  --color-retro-dark: #0a0a0c;
+  --color-retro-success: #00ff7f;
+}
+
+.success-glow {
+  filter: drop-shadow(0 0 15px #00ff7f);
+}
+
+.status-text-italic {
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-text {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-text::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-100vh) translateX(var(--tx)) scale(0);
+    opacity: 0;
+  }
+}
+
+.animate-particle {
+  animation: float-particle var(--duration) ease-out infinite;
+  animation-delay: var(--delay);
+}

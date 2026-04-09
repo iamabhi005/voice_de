@@ -1,0 +1,86 @@
+[
+    {
+        "id": "s1",
+        "title": "Tujhe Dekha Toh",
+        "singer": "Kumar Sanu",
+        "year": "1995",
+        "movie": "Dilwale Dulhania Le Jayenge"
+    },
+    {
+        "id": "s2",
+        "title": "Mera Dil Bhi Kitna Pagal Hai",
+        "singer": "Kumar Sanu",
+        "year": "1991",
+        "movie": "Saajan"
+    },
+    {
+        "id": "s3",
+        "title": "Pehla Nasha",
+        "singer": "Udit Narayan",
+        "year": "1992",
+        "movie": "Jo Jeeta Wohi Sikandar"
+    },
+    {
+        "id": "s4",
+        "title": "Papa Kehte Hain",
+        "singer": "Udit Narayan",
+        "year": "1988",
+        "movie": "Qayamat Se Qayamat Tak"
+    },
+    {
+        "id": "s5",
+        "title": "Tip Tip Barsa Pani",
+        "singer": "Alka Yagnik",
+        "year": "1994",
+        "movie": "Mohra"
+    },
+    {
+        "id": "s6",
+        "title": "Chura Ke Dil Mera",
+        "singer": "Alka Yagnik",
+        "year": "1994",
+        "movie": "Main Khiladi Tu Anari"
+    },
+    {
+        "id": "s7",
+        "title": "Sandese Aate Hain",
+        "singer": "Sonu Nigam",
+        "year": "1997",
+        "movie": "Border"
+    },
+    {
+        "id": "s8",
+        "title": "Deewana Tera",
+        "singer": "Sonu Nigam",
+        "year": "1999",
+        "movie": "Deewana"
+    },
+    {
+        "id": "s9",
+        "title": "Kuch Kuch Hota Hai",
+        "singer": "Udit Narayan",
+        "year": "1998",
+        "movie": "Kuch Kuch Hota Hai"
+    },
+    {
+        "id": "s10",
+        "title": "Do Dil Mil Rahe Hain",
+        "singer": "Kumar Sanu",
+        "year": "1997",
+        "movie": "Pardes"
+    },
+    {
+        "id": "s11",
+        "title": "Ae Mere Humsafar",
+        "singer": "Udit Narayan",
+        "year": "1988",
+        "movie": "Qayamat Se Qayamat Tak"
+    },
+    {
+        "id": "s12",
+        "title": "Baazigar O Baazigar",
+        "singer": "Kumar Sanu",
+        "year": "1993",
+        "movie": "Baazigar"
+    }
+]

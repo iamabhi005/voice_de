@@ -1,0 +1,18 @@
+# Python
+server/venv/
+server/__pycache__/
+server/*.pyc
+server/uploads/
+server/test_resemblyzer.py
+
+# Node
+client/node_modules/
+node_modules/
+client/dist/
+dist/
+
+# OS
+.DS_Store
+
+# Logs
+*.log

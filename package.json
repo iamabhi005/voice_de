@@ -1,0 +1,11 @@
+{
+    "name": "gana-voice-root",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "npm run server-start & npm run dev --prefix client",
+        "build": "npm run build --prefix client",
+        "client-install": "npm install --prefix client",
+        "server-setup": "cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+        "server-start": "lsof -ti:8000 | xargs kill -9 || true && cd server && source venv/bin/activate && python3 main.py"
+    }
+}
