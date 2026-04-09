@@ -35,7 +35,7 @@ export async function GET(request) {
 
         // 2. Gemini Metadata Extraction
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const resultsText = youtube_results.length > 0
             ? youtube_results.map((r, i) => `${i + 1}. "${r.title}" — ${r.channel}`).join('\n')
