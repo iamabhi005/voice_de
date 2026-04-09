@@ -7,5 +7,11 @@
         "client-install": "npm install --prefix client",
         "server-setup": "cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
         "server-start": "lsof -ti:8000 | xargs kill -9 || true && cd server && source venv/bin/activate && python3 main.py"
+    },
+    "dependencies": {
+        "@google/generative-ai": "^0.24.1",
+        "axios": "^1.15.0",
+        "dotenv": "^17.4.1",
+        "pg": "^8.20.0"
     }
 }

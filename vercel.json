@@ -1,0 +1,23 @@
+{
+    "version": 2,
+    "name": "retro-singer-verifier",
+    "builds": [
+        {
+            "src": "client/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "https://your-backend-url.onrender.com/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/client/$1"
+        }
+    ]
+}

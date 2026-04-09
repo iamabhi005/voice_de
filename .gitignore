@@ -16,3 +16,7 @@ dist/
 
 # Logs
 *.log
+
+# Environment secrets
+.env
+server/.env

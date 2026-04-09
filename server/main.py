@@ -1,21 +1,42 @@
+import ssl
+ssl._create_default_https_context = ssl.create_default_context
+
 import os
 import shutil
 import uuid
 import subprocess
+import json
 import numpy as np
 import librosa
 import soundfile as sf
+import requests
+import google.genai as genai
+from google.genai import types as genai_types
+from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from resemblyzer import VoiceEncoder, preprocess_wav
 from typing import List, Dict, Optional
-import json
 from contextlib import asynccontextmanager
+
+# Load environment variables
+load_dotenv()
+
+# Global models
+gemini_client = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global gemini_client
     load_singer_embeddings()
     load_songs_data()
+    # Initialize Gemini
+    api_key = os.getenv("GEMINI_API_KEY")
+    if api_key:
+        gemini_client = genai.Client(api_key=api_key)
+        print("Gemini client initialized.")
+    else:
+        print("Warning: GEMINI_API_KEY not set. /search will not work.")
     yield
 
 app = FastAPI(title="Retro Singer Verifier API", lifespan=lifespan)
@@ -64,6 +85,8 @@ def convert_to_wav(input_path: str) -> str:
 singer_embeddings: Dict[str, np.ndarray] = {}
 # Song dataset
 songs_data: List[Dict] = []
+# Gemini client
+gemini_client = None
 
 def load_songs_data():
     """Load the song dataset from data/songs.json."""
@@ -276,6 +299,121 @@ async def verify_voice(
             os.remove(temp_file_path)
         if converted_path and os.path.exists(converted_path):
             os.remove(converted_path)
+
+
+@app.get("/search")
+async def search_by_lyrics(q: str):
+    """
+    Accepts transcribed lyrics from the browser (SpeechRecognition API),
+    searches YouTube top 5, feeds to Gemini, returns singer metadata.
+    """
+    if not gemini_client:
+        raise HTTPException(status_code=503, detail="Gemini not initialized. Set GEMINI_API_KEY in server/.env")
+    if not q or not q.strip():
+        raise HTTPException(status_code=400, detail="Query 'q' cannot be empty.")
+
+    lyrics = q.strip()
+    search_query = f"{lyrics} hindi song"
+    print(f"DEBUG [search]: YouTube query: {search_query}")
+
+    try:
+        # Step 1: Video search via Serper.dev
+        serper_key = os.getenv("SERPER_API_KEY")
+        if not serper_key:
+            raise HTTPException(status_code=500, detail="SERPER_API_KEY NOT FOUND IN .ENV")
+
+        url = "https://google.serper.dev/videos"
+        payload = json.dumps({
+            "q": f"{lyrics} bollywood song",
+            "num": 5
+        })
+        headers = {
+            'X-API-KEY': serper_key,
+            'Content-Type': 'application/json'
+        }
+
+        print(f"DEBUG [search]: Calling Serper.dev for: {lyrics}")
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response_data = response.json()
+        
+        youtube_results = []
+        if "videos" in response_data:
+            for v in response_data["videos"][:5]:
+                youtube_results.append({
+                    "title": v.get("title", ""),
+                    "channel": v.get("channel", "YouTube"),
+                    "url": v.get("link", ""),
+                })
+
+        print(f"DEBUG [search]: Final Serper count: {len(youtube_results)} results")
+
+        # Step 2: Feed to Gemini
+        results_text = "No direct search results found."
+        if youtube_results:
+            results_text = "\n".join([
+                f"{i+1}. \"{r['title']}\" — {r['channel']}"
+                for i, r in enumerate(youtube_results)
+            ])
+
+        prompt = f"""You are a Bollywood music expert. The user sang or spoke these lyrics:
+"{lyrics}"
+
+YouTube search results for these lyrics:
+{results_text}
+
+Identify the most likely Bollywood song and singer. 
+*IF search results are empty, use your internal knowledge of Hindi/Bollywood music to identify the song from the lyrics.*
+
+Return ONLY a valid JSON object (no markdown):
+{{
+  "singer_name": "Full singer name",
+  "song_title": "Song title",
+  "movie": "Movie or album",
+  "year": "Release year",
+  "genre": "Genre",
+  "era": "80s / 90s / 2000s / 2010s",
+  "famous_songs": ["Song 1", "Song 2", "Song 3"],
+  "bio": "2-3 sentence bio of the singer",
+  "confidence": "high / medium / low"
+}}"""
+
+        print("DEBUG [search]: Calling Gemini...")
+        try:
+            gemini_response = gemini_client.models.generate_content(
+                model="gemini-flash-latest",
+                contents=prompt
+            )
+            raw_response = gemini_response.text.strip()
+        except Exception as ge:
+            if "429" in str(ge) or "RESOURCE_EXHAUSTED" in str(ge):
+                raise HTTPException(
+                    status_code=429, 
+                    detail="Gemini API quota exceeded. Please wait a minute or check your plan at ai.google.dev"
+                )
+            raise ge
+
+        print(f"DEBUG [search]: Gemini: {raw_response[:150]}")
+
+        try:
+            if raw_response.startswith("```"):
+                raw_response = raw_response.split("```")[1]
+                if raw_response.startswith("json"):
+                    raw_response = raw_response[4:]
+            singer_metadata = json.loads(raw_response.strip())
+        except json.JSONDecodeError:
+            singer_metadata = {"raw_response": raw_response}
+
+        return {
+            "query": lyrics,
+            "youtube_results": youtube_results,
+            "singer_metadata": singer_metadata,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"DEBUG [search]: Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
