@@ -1,22 +1,25 @@
+# Next.js
+.next/
+out/
+build/
+next-env.d.ts
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Python
-server/venv/
-server/__pycache__/
-server/*.pyc
-server/uploads/
-server/test_resemblyzer.py
+legacy/server/venv/
+legacy/server/__pycache__/
+legacy/server/*.pyc
+legacy/server/uploads/
 
 # Node
-client/node_modules/
 node_modules/
-client/dist/
 dist/
-
-# OS
-.DS_Store
 
 # Logs
 *.log
 
-# Environment secrets
-.env
-server/.env
+# OS
+.DS_Store
