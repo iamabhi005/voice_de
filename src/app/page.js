@@ -191,13 +191,12 @@ export default function Home() {
     formData.append('file', audioBlob, 'recording.wav');
     formData.append('singer', selectedSinger.name);
     try {
-      // Note: Verify still requires the Python backend if not migrated to serverless
-      const response = await axios.post('http://localhost:8000/verify', formData);
+      const response = await axios.post('/api/verify', formData);
       setVerifyResult(response.data);
     } catch (err) {
       setVerifyResult({
         is_match: false, confidence: 0,
-        message: err.response?.data?.detail || "Verification failed. Make sure the Python server is running.",
+        message: err.response?.data?.error || "Verification failed. Please try again.",
         is_error: true
       });
     } finally {

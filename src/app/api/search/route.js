@@ -1,6 +1,56 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Client } from 'pg';
 import axios from 'axios';
+
+async function fetchItunesMetadata(q) {
+    try {
+        const response = await axios.get(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=1`);
+        if (response.data.results && response.data.results.length > 0) {
+            const track = response.data.results[0];
+            return {
+                singer_name: track.artistName,
+                song_title: track.trackName,
+                movie: track.collectionName || 'Unknown Movie',
+                year: track.releaseDate ? new Date(track.releaseDate).getFullYear().toString() : 'Unknown',
+                genre: track.primaryGenreName || 'Indian',
+                era: track.releaseDate ? getEra(new Date(track.releaseDate).getFullYear()) : 'Unknown',
+                creators: [
+                    { name: track.artistName, role: "Singer" }
+                ],
+                bio: `A popular track by ${track.artistName} from the album/movie ${track.collectionName || 'Unknown'}.`,
+                confidence: "high"
+            };
+        }
+    } catch (e) {
+        console.error('iTunes API error:', e);
+    }
+    return null;
+}
+
+function getEra(year) {
+    if (year >= 1980 && year < 1990) return "80s";
+    if (year >= 1990 && year < 2000) return "90s";
+    if (year >= 2000 && year < 2010) return "2000s";
+    if (year >= 2010 && year < 2020) return "2010s";
+    if (year >= 2020) return "2020s";
+    return "Unknown";
+}
+
+function parseYoutubeTitle(title) {
+    // Simple regex to extract song and movie/singer from common Bollywood title patterns
+    // Example: "Song Title | Movie Name | Singer" or "Song Title - Movie"
+    const parts = title.split(/[|\-]/).map(p => p.trim());
+    return {
+        song_title: parts[0] || title,
+        movie: parts[1] || 'Unknown Movie',
+        singer_name: parts[2] || 'Unknown Singer',
+        year: 'Unknown',
+        genre: 'Bollywood',
+        era: 'Unknown',
+        creators: parts[2] ? [{ name: parts[2], role: "Singer" }] : [],
+        bio: `Details extracted from search result: ${title}`,
+        confidence: "medium"
+    };
+}
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
@@ -10,7 +60,6 @@ export async function GET(request) {
         return Response.json({ error: 'Missing query parameter q' }, { status: 400 });
     }
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const SERPER_API_KEY = process.env.SERPER_API_KEY;
     const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -33,52 +82,26 @@ export async function GET(request) {
             url: v.link
         }));
 
-        // 2. Gemini Metadata Extraction
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        // 2. Metadata Extraction (Replacing Gemini)
+        let singer_metadata = await fetchItunesMetadata(q);
 
-        const resultsText = youtube_results.length > 0
-            ? youtube_results.map((r, i) => `${i + 1}. "${r.title}" — ${r.channel}`).join('\n')
-            : "No direct search results found.";
+        if (!singer_metadata && youtube_results.length > 0) {
+            // Fallback: Parse from the first YouTube title
+            singer_metadata = parseYoutubeTitle(youtube_results[0].title);
+        }
 
-        const prompt = `You are a Bollywood music expert. The user sang or spoke these lyrics:
-"${q}"
-
-YouTube search results for these lyrics:
-${resultsText}
-
-Identify the most likely Bollywood song and its creators. 
-*IF search results are empty, use your internal knowledge of Hindi/Bollywood music to identify the song from the lyrics.*
-
-Include ALL creators (Singers, Composers, Lyricists, etc.) and their specific roles.
-
-Return ONLY a valid JSON object (no markdown, no backticks):
-{
-  "singer_name": "Primary singer name",
-  "song_title": "Song title",
-  "movie": "Movie or album",
-  "year": "Release year",
-  "genre": "Genre",
-  "era": "80s / 90s / 2000s / 2010s / 2020s",
-  "creators": [
-    { "name": "Name 1", "role": "Singer" },
-    { "name": "Name 2", "role": "Singer" },
-    { "name": "Name 3", "role": "Composer" },
-    { "name": "Name 4", "role": "Lyricist" }
-  ],
-  "bio": "2-3 sentence bio of the song/singer",
-  "confidence": "high / medium / low"
-}`;
-
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-
-        let singer_metadata;
-        try {
-            const jsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-            singer_metadata = JSON.parse(jsonStr);
-        } catch (e) {
-            singer_metadata = { raw_response: responseText };
+        if (!singer_metadata) {
+            singer_metadata = {
+                singer_name: "Unknown",
+                song_title: q,
+                movie: "Unknown",
+                year: "Unknown",
+                genre: "Unknown",
+                era: "Unknown",
+                creators: [],
+                bio: "Could not find specific metadata for this query.",
+                confidence: "low"
+            };
         }
 
         // 3. Log to Neon DB
@@ -99,7 +122,7 @@ Return ONLY a valid JSON object (no markdown, no backticks):
                 [
                     q,
                     JSON.stringify(serperResponse.data),
-                    responseText,
+                    'NO_LLM_USED', // Mock raw response
                     JSON.stringify(singer_metadata),
                     singer_metadata.singer_name || 'Unknown',
                     singer_metadata.song_title || 'Unknown',
@@ -124,3 +147,4 @@ Return ONLY a valid JSON object (no markdown, no backticks):
         return Response.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
+
