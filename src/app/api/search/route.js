@@ -104,7 +104,8 @@ export async function GET(request) {
             };
         }
 
-        // 3. Log to Neon DB
+        /* 
+        // 3. Log to Neon DB (Monitoring disabled as per request)
         const client = new Client({ connectionString: DATABASE_URL });
         await client.connect();
         try {
@@ -135,6 +136,7 @@ export async function GET(request) {
         } finally {
             await client.end();
         }
+        */
 
         return Response.json({
             query: q,

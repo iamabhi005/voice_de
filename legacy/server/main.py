@@ -381,7 +381,15 @@ Return ONLY a valid JSON object (no markdown):
         try:
             gemini_response = gemini_client.models.generate_content(
                 model="gemini-flash-latest",
-                contents=prompt
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(
+                    safety_settings=[
+                        genai_types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_NONE"),
+                        genai_types.SafetySetting(category="HARM_CATEGORY_HATE_SPEECH", threshold="BLOCK_NONE"),
+                        genai_types.SafetySetting(category="HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold="BLOCK_NONE"),
+                        genai_types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+                    ]
+                )
             )
             raw_response = gemini_response.text.strip()
         except Exception as ge:
