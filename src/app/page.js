@@ -248,12 +248,26 @@ export default function Home() {
     }
   };
 
+  const handleCancel = () => {
+    setIsProcessing(false);
+    setIsListening(false);
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  };
+
   const reset = () => {
+    setIsProcessing(false);
+    setIsListening(false);
     setAudioBlob(null);
     setVerifyResult(null);
     setSearchResult(null);
     setRecordingTime(0);
     setTranscript('');
+    clearInterval(timerRef.current);
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
   };
 
   const switchMode = (newMode) => {
@@ -344,7 +358,14 @@ export default function Home() {
                   isProcessing={isProcessing} onStart={startRecording} onStop={stopRecording} />
 
                 {audioBlob && !isRecording && (
-                  <ActionButton isProcessing={isProcessing} onClick={handleVerify} label="VERIFY VOICE" />
+                  <div className="w-full space-y-3">
+                    <ActionButton isProcessing={isProcessing} onClick={handleVerify} label="VERIFY VOICE" />
+                    {isProcessing && (
+                      <button onClick={handleCancel} className="w-full py-3 text-white/40 hover:text-white/70 font-bold text-xs uppercase tracking-widest transition-all">
+                        Stop / Cancel
+                      </button>
+                    )}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -409,7 +430,14 @@ export default function Home() {
                 </div>
 
                 {transcript && !isListening && (
-                  <ActionButton isProcessing={isProcessing} onClick={handleSearch} label="FIND SONG" icon={<Search className="w-6 h-6" />} processingLabel="SEARCHING..." />
+                  <div className="w-full space-y-3">
+                    <ActionButton isProcessing={isProcessing} onClick={handleSearch} label="FIND SONG" icon={<Search className="w-6 h-6" />} processingLabel="SEARCHING..." />
+                    {isProcessing && (
+                      <button onClick={handleCancel} className="w-full py-3 text-white/40 hover:text-white/70 font-bold text-xs uppercase tracking-widest transition-all">
+                        Stop / Cancel
+                      </button>
+                    )}
+                  </div>
                 )}
               </motion.div>
             )}
